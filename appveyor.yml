@@ -1,0 +1,18 @@
+version: 1.0.{build}
+image: Visual Studio 2015
+configuration: Release
+platform: x64
+build:
+  verbosity: minimal
+artifacts:
+- path: "'projects\\misc\\CM3D2x64_Launcher\\bin\\Release\\*.exe'"
+  name: CM3D2x64_Launcher
+deploy:
+- provider: GitHub
+  tag: CM3D2x64_Launcher
+  release: CM3D2x64_Launcher-v$(appveyor_build_version)
+  description: CM3D2x64_Launcher
+  auth_token:
+    secure: 9A9cpAgA6HOpTiGLt1cnLLR8CddU9/P2qxaiL6LNMmU5cKaXoncdru/CvxLar+jM
+  artifact: /.*/
+  prerelease: true

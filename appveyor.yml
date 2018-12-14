@@ -5,14 +5,15 @@ platform: x64
 build:
   verbosity: minimal
 artifacts:
-- path: C:\projects\misc\CM3D2x64_Launcher\bin\Release\
-  name: CM3D2x64_Launcher
+- path: CM3D2x64_Launcher\bin\Release\CM3D2x64_Launcher.exe
+  name: CM3D2x64 Launcher
+- path: ARGDisplayer\bin\x64\Release\ARGDisplayer.exe
+  name: Arguments Displayer
 deploy:
 - provider: GitHub
-  tag: CM3D2x64_Launcher
-  release: CM3D2x64_Launcher-v$(appveyor_build_version)
-  description: CM3D2x64_Launcher
+  tag: Collections
+  release: Misc_Collections-v$(appveyor_build_version)
   auth_token:
     secure: 9A9cpAgA6HOpTiGLt1cnLLR8CddU9/P2qxaiL6LNMmU5cKaXoncdru/CvxLar+jM
   artifact: /.*/
-  prerelease: true
+  prerelease: false

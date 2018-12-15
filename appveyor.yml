@@ -18,7 +18,7 @@ artifacts:
 
 deploy:
 - provider: GitHub
-  tag: Collections
+  tag: v$(appveyor_build_version)
   release: Misc_Collections-v$(appveyor_build_version)
   auth_token:
     secure: 9A9cpAgA6HOpTiGLt1cnLLR8CddU9/P2qxaiL6LNMmU5cKaXoncdru/CvxLar+jM

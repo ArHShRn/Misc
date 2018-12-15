@@ -1,4 +1,19 @@
-﻿using Microsoft.Win32;
+﻿//=============================================================================
+// Custom Maid 3D 2 x64 Launcher
+// Introduction :
+//  CM3D2x64_Launcher.exe will auto-detect environment 
+//   and launch CM3D2 conveniently and silently.
+// 
+// Code And Concept By ArHShRn
+// https://github.com/ArHShRn
+//
+// Release Log :
+//  Add comments.
+//
+// Last Update :
+//  Dec.15th 2018
+//=============================================================================
+using Microsoft.Win32;
 using System;
 using System.IO;
 using System.Diagnostics;

@@ -1,14 +1,19 @@
 version: 1.0.{build}
 image: Visual Studio 2015
+
 configuration: Release
+
 platform: x64
+
 build:
   verbosity: minimal
+
 artifacts:
 - path: CM3D2x64_Launcher\bin\Release\CM3D2x64_Launcher.exe
   name: CM3D2x64 Launcher
 - path: ARGDisplayer\bin\x64\Release\ARGDisplayer.exe
   name: Arguments Displayer
+
 deploy:
 - provider: GitHub
   tag: Collections

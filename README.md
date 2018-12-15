@@ -10,6 +10,7 @@ ARGDisplayer.exe will display all arguments used if you "hook" this app onto oth
 It's just a small trick, using foreach(var s in args).<br>
 
 ### Custom Maid 3D 2 x64 Launcher
+![CM3D2x64_Launcher_Cover](https://files.arhshrn.cn/github/miscellaneous/CM3D2x64_Launcher/CM3D2x64_Launcher_Cover.jpg)
 CM3D2x64_Launcher.exe will auto-detect environment and launch CM3D2 conveniently and silently.<br>
 
 #### 1.Auto-detect launch directory and Registry status, supporting multiple CM3D2 versions.

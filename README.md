@@ -33,3 +33,4 @@ A picture below will show you the way to register it while the notification give
 
 ### Log Helper
 This item is currently under construction.
+![result](https://fileshk.arhshrn.cn/github/miscellaneous/ArLib_Logger/result.jpg)

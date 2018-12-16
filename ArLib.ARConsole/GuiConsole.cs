@@ -34,9 +34,10 @@ namespace ArLib.ARConsole
             }
         }
 
-        public GuiConsole()
+        public GuiConsole(string title = "ArHShRn GUI Logger")
         {
             InitializeComponent();
+            this.Text = title;
             AddLog("Initialized.");
         }
 

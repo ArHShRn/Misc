@@ -29,12 +29,19 @@ namespace ArLib.LibTestApp
             Application.SetCompatibleTextRenderingDefault(false);
 
             //Application.Run(new MyForm());
-            var logger = new LogHelper(true, "MyGuiConsole", true);
+            var logger = new LogHelper(true, "MyGuiConsole", false);
 
-            logger.ExecuteCMD("NSLOOKUP -QT=A JP1.AR-DISTRIBUTED.COM 8.8.8.8");
+            //logger.ExecuteCMD("DIR");
+            //logger.ExecuteCMD("NSLOOKUP -QT=A JP1.AR-DISTRIBUTED.COM 8.8.8.8");
 
-            logger.Log("Waiting For 5 Seconds To Exit...");
-            Thread.Sleep(5000);
+            logger.AsyncExecuteCMD("DIR");
+            logger.AsyncExecuteCMD("TASKLIST | FINSTR AWCC");
+            logger.AsyncExecuteCMD("NSLOOKUP -QT=A JP1.AR-DISTRIBUTED.COM 8.8.8.8");
+            //logger.Log("Current thread sleeps for 1 sec...", MsgLevel.Further);
+
+            //Thread.Sleep(1000);
+            //logger.ReleaseConsole();
+            logger.Pause();
         }
     }
 }

@@ -10,6 +10,8 @@
 // https://github.com/Eusth
 // Modified By ArHShRn
 // https://github.com/ArHShRn
+// Microsoft Docs
+// https://docs.microsoft.com/en-us/windows/console/console-functions
 //
 // Release Log :
 //  Add comments.
@@ -47,6 +49,9 @@ namespace ArLib.ARConsole
         /// <returns></returns>
         [DllImport("kernel32.dll", SetLastError = false)]
         private static extern bool FreeConsole();
+
+        [DllImport("kernel32.dll", SetLastError = false)]
+        private static extern bool SetConsoleTitle(string lpConsoleTitle);
 
         /// <summary>
         /// [WINDOWS API] GET A HANDLE FROM A STANDARD DEVICE
@@ -100,7 +105,7 @@ namespace ArLib.ARConsole
         /// <summary>
         /// Create current thread a console window.
         /// </summary>
-        public static void CreateConsole()
+        public static void CreateConsole(string title = @"ArHShRn CUI Logger")
         {
             if (hasConsole)
                 return;
@@ -115,6 +120,9 @@ namespace ArLib.ARConsole
 
             if (!SetStdHandle(-11, conOut))
                 throw new Exception("SetStdHandle() Failed.");
+
+            if (!SetConsoleTitle(title))
+                throw new Exception("SetConsoleTitle Failed.");
 
             StreamToConsole();
 

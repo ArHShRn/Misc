@@ -27,10 +27,25 @@ namespace ArLib.ARConsole
     /// </summary>
     public enum MsgLevel
     {
+        /// <summary>
+        /// White
+        /// </summary>
         Default = -1,
+        /// <summary>
+        /// Cyan
+        /// </summary>
         Redirected,
+        /// <summary>
+        /// Green
+        /// </summary>
         Harmless,
+        /// <summary>
+        /// Yellow
+        /// </summary>
         Further,
+        /// <summary>
+        /// Red
+        /// </summary>
         Critical
     };
 
@@ -40,17 +55,17 @@ namespace ArLib.ARConsole
     public static class ListExtension
     {
         /// <summary>
-        /// [Extension] Take messages of errors occured before console is created one by one.
+        /// [Extension] Take messages one by one in the List like a queue.
         /// </summary>
-        /// <param name="ErrMsgList">The error messages list</param>
+        /// <param name="MsgList">The error messages list</param>
         /// <returns>null if the list is empty</returns>
-        public static string DequeueErrorMessage(this List<string> ErrMsgList)
+        public static string DeQueueList(this List<string> MsgList)
         {
-            if (ErrMsgList.Count <= 0) return null;
+            if (MsgList.Count <= 0) return null;
 
-            string ErrMsg = ErrMsgList.First();
-            ErrMsgList.RemoveAt(0);
-            return ErrMsg;
+            var Msg = MsgList.First();
+            MsgList.RemoveAt(0);
+            return Msg;
         }
     }
 
@@ -87,7 +102,7 @@ namespace ArLib.ARConsole
         /// <summary>
         /// Is gui console disposed?
         /// </summary>
-        private bool bGuiConosleDisposed = false;
+        private bool bGuiDisposed = false;
 
         /// <summary>
         /// For get/set usage.
@@ -100,8 +115,8 @@ namespace ArLib.ARConsole
         /// <summary>
         /// <para>Prefix of the log.</para>
         /// <para>Default prefix is "[Log] "</para>
-        /// <para>The log message will like</para>
-        /// <para>[Log] This is a sample log.</para>
+        /// <para>The log message will like
+        /// [Log] This is a sample log.</para>
         /// </summary>
         public string Prefix
         {
@@ -128,6 +143,9 @@ namespace ArLib.ARConsole
         /// The form class of Gui console.
         /// </summary>
         private GuiConsole guiConsole = null;
+
+        //----------Async GUI Message Loop
+        #region Async_GUI_Message_Loop
         /// <summary>
         /// <para>A delegate.</para>
         /// <para>Used for async creating Gui console.</para>
@@ -138,13 +156,23 @@ namespace ArLib.ARConsole
         /// </summary>
         private AsyncCallback CreateGuiConsoleCallBack;
         /// <summary>
-        /// The instance of the function to create a Gui console.
-        /// </summary>
-        private CreateGuiConsoleDelegate CreateGuiConsole = null;
-        /// <summary>
         /// IAsyncResult of CreateGuiConsoleDelegate's invoke.
         /// </summary>
         private IAsyncResult CreateGuiConsoleResult = null;
+        /// <summary>
+        /// The instance of the function to create a Gui console.
+        /// </summary>
+        private CreateGuiConsoleDelegate delegateCreateGuiConsole = null;
+        #endregion Async_GUI_Message_Loop
+
+        //----------Async Executing Commands
+        #region Async_Executing_Commands
+        private delegate void AsyncExecuteCMDDelegate(string command);
+        private AsyncExecuteCMDDelegate delegateAsyncExecuteCMD = null;
+        private AsyncCallback AsyncExecuteCMDCallback = null;
+        private IAsyncResult AsyncExecuteCMDResult = null;
+        #endregion Async_Executing_Commands
+
         /// <summary>
         /// <para>A delegate.</para>
         /// <para>Used for adding log in Gui console.</para>
@@ -157,49 +185,60 @@ namespace ArLib.ARConsole
         /// </summary>
         private GuiLogDelegate LogGuiConsole = null;
 
-        private ConsoleColor DefaultColor = ConsoleColor.White;
-        private ConsoleColor RedirectedColor = ConsoleColor.Cyan;
-        private ConsoleColor HarmlessColor = ConsoleColor.Green;
-        private ConsoleColor FurtherColor = ConsoleColor.Yellow;
-        private ConsoleColor CriticalColor = ConsoleColor.Red;
+        private ConsoleColor DefaultColor       = ConsoleColor.White;
+        private ConsoleColor RedirectedColor    = ConsoleColor.Cyan;
+        private ConsoleColor HarmlessColor      = ConsoleColor.Green;
+        private ConsoleColor FurtherColor       = ConsoleColor.Yellow;
+        private ConsoleColor CriticalColor      = ConsoleColor.Red;
 
         /// <summary>
         /// <para>Create a logger instance.</para>
-        /// <para>This instance responds to CMD commands and uses default log prefix</para>
+        /// <para>This instance is a CUI console, responds to CMD commands and uses default log prefix</para>
         /// </summary>
-        public LogHelper()
+        /// <param name="title">The console title.</param>
+        public LogHelper(string title = "ArHShRn CUI Logger")
         {
             bInitedCMD = false;
-            bConsoleApp = !CreateCuiConsole();
+            bConsoleApp = !CreateCuiConsole(title);
+            bGuiConsole = false;
+            bGuiDisposed = true;
 
             LogPreErrors();
         }
 
         /// <summary>
         /// <para>Create a logger instance.</para>
+        /// <para>This instance is a CUI console, uses default log prefix.</para>
         /// <para>The user will decide if this instance responds to CMD commands.</para>
-        /// <para>This instance uses default log prefix.</para>
         /// </summary>
         /// <param name="bUseCMD">set true to let the instance responds to CMD commands.</param>
-        public LogHelper(bool bUseCMD)
+        /// <param name="title">The console title.</param>
+        public LogHelper(bool bUseCMD, string title = "ArHShRn CUI Logger")
         {
             bInitedCMD = bUseCMD && InitPsiCMD();
-            bConsoleApp = !CreateCuiConsole();
+            bConsoleApp = !CreateCuiConsole(title);
+            bGuiConsole = false;
+            bGuiDisposed = true;
 
             LogPreErrors();
         }
 
         /// <summary>
         /// <para>Create a logger instance.</para>
+        /// <para>This instance is a CUI console</para>
         /// <para>The user will decide if this instance responds to CMD commands.</para>
         /// <para>The user will decide if this instance uses customized prefix.</para>
         /// </summary>
         /// <param name="bUseCMD">set true to let the instance responds to CMD commands.</param>
         /// <param name="customPrefix">set your willing prefix.</param>
-        public LogHelper(bool bUseCMD, string customPrefix)
+        /// <param name="title">The console title.</param>
+        public LogHelper(bool bUseCMD, string customPrefix, string title = "ArHShRn CUI Logger")
         {
             bInitedCMD = bUseCMD && InitPsiCMD();
-            bConsoleApp = !CreateCuiConsole();
+            bConsoleApp = !CreateCuiConsole(title);
+            bGuiConsole = false;
+            bGuiDisposed = true;
+
             Prefix = customPrefix;
 
             LogPreErrors();
@@ -214,30 +253,36 @@ namespace ArLib.ARConsole
         /// <param name="bUseCMD">set true to let the instance responds to CMD commands.</param>
         /// <param name="customPrefix">set your willing prefix.</param>
         /// <param name="bGUI">set true to create GUI console</param>
-        public LogHelper(bool bUseCMD, string customPrefix, bool bGUI)
+        /// <param name="title">The console title.</param>
+        public LogHelper(bool bUseCMD, string customPrefix, bool bGUI, string title = "ArHShRn CUI Logger")
         {
             bInitedCMD = bUseCMD && InitPsiCMD();
+            bConsoleApp = true;
             bGuiConsole = bGUI;
+            bGuiDisposed = false;
+
             Prefix = customPrefix;
 
             if(bGuiConsole)
             {
                 guiConsole = new GuiConsole();
 
-                //Register logging method
+                //Register async method use in this class
                 LogGuiConsole = new GuiLogDelegate(guiConsole.AddLog);
 
                 //Register async creating event.
-                CreateGuiConsole = new CreateGuiConsoleDelegate(CreateGuiThread);
+                delegateCreateGuiConsole = new CreateGuiConsoleDelegate(CreateGuiThread);
+                //Register async callback
                 CreateGuiConsoleCallBack = new AsyncCallback(NotifyGuiConsoleTerminated);
-                CreateGuiConsoleResult = CreateGuiConsole.BeginInvoke
+                //Begin invoke
+                CreateGuiConsoleResult = delegateCreateGuiConsole.BeginInvoke
                     (
                         callback: CreateGuiConsoleCallBack,
                         @object: "Gui Console Terminiated!"
                     );
             }
             else
-                bConsoleApp = !CreateCuiConsole();
+                bConsoleApp = !CreateCuiConsole(title);
 
             LogPreErrors();
         }
@@ -272,7 +317,7 @@ namespace ArLib.ARConsole
             Log("Logger successfully created!", MsgLevel.Harmless);
             while(true)
             {
-                errmsg = preErrMsg.DequeueErrorMessage();
+                errmsg = preErrMsg.DeQueueList();
                 if (errmsg == null) break;
 
                 Log(errmsg, MsgLevel.Critical);
@@ -292,12 +337,14 @@ namespace ArLib.ARConsole
                 psiCMD = new ProcessStartInfo();
 
                 psiCMD.FileName = "cmd.exe";
-                //psiCMD.Arguments = "/C "; //Exit right after the command is executed
                 psiCMD.UseShellExecute = false; //Don't launch with shell 
                 psiCMD.RedirectStandardInput = true;
                 psiCMD.RedirectStandardOutput = true;
                 psiCMD.RedirectStandardError = true;
                 psiCMD.CreateNoWindow = true; //Don't create new window
+
+                //Debug
+                //throw new Exception("Test Exception In InitPsiCMD");
 
                 return true;
             }
@@ -312,11 +359,11 @@ namespace ArLib.ARConsole
         /// Try to create a console for current proc.
         /// </summary>
         /// <returns>false if current proc has already a console.[Like a console app]</returns>
-        private bool CreateCuiConsole()
+        private bool CreateCuiConsole(string title)
         {
             try
             {
-                ConsoleHelper.CreateConsole();
+                ConsoleHelper.CreateConsole(title);
                 return true;
             }
             catch(Exception ex)
@@ -344,7 +391,7 @@ namespace ArLib.ARConsole
                 Log("You can't release the console while this process is a console app!", MsgLevel.Critical);
                 return;
             }
-            if(bGuiConsole && !bGuiConosleDisposed)
+            if(bGuiConsole && !bGuiDisposed)
             {
                 Log("You can't release the console while the Gui console is online!", MsgLevel.Critical);
                 return;
@@ -392,15 +439,18 @@ namespace ArLib.ARConsole
         }
 
         /// <summary>
-        /// Start a new line.
+        /// Start a new line except GUI console.
         /// </summary>
         public void CRLF()
         {
+            if (bGuiConsole) return;
+
             Console.WriteLine();
         }
 
         /// <summary>
-        /// Debug useage
+        /// Only for in-class usage.
+        /// Make a non-prefix log according to your willing.
         /// </summary>
         /// <param name="str"></param>
         /// <param name="prefix"></param>
@@ -440,29 +490,32 @@ namespace ArLib.ARConsole
         }
 
         /// <summary>
-        /// Send a cmd command and get the result
+        /// Sync send a cmd command and get the result.
         /// </summary>
-        /// <param name="command"></param>
+        /// <param name="command">A non-interactive CMD command</param>
         public void ExecuteCMD(string command)
         {
             if(!bInitedCMD)
             {
                 Log("You didn't set this logger instance to responds to CMD commands.", MsgLevel.Critical);
-                Log("Create this instance with [public LogConsole(bool bUseCMD)].", MsgLevel.Critical);
+                Log("Otherwise this may be caused by errors occured before.", MsgLevel.Critical);
                 return;
             }
+
             string result = "";
 
             procCMD = new Process();
             procCMD.StartInfo = psiCMD;
             var bStart = procCMD.Start();
+
             if(!bStart)
             {
                 Log("Failed to create CMD process.", MsgLevel.Critical);
                 return;
             }
 
-            Log("Waiting For CMD Processing...",MsgLevel.Further);
+            Log("-Sync Exec- " + command, MsgLevel.Further);
+
             procCMD.StandardInput.AutoFlush = true;
             procCMD.StandardInput.WriteLine(@"ECHO OFF");
             procCMD.StandardInput.WriteLine(command);
@@ -474,9 +527,79 @@ namespace ArLib.ARConsole
             result = result.Substring(index + 8, result.Length - index - 13);
 
             InnerLog(result, "", false, MsgLevel.Redirected);
-            //Log("Command Successully Executed.", MsgLevel.Harmless);
+            Log("-Sync Exec- Terminated. [" + command + "]", MsgLevel.Further);
 
             procCMD.Close();
+        }
+
+        /// <summary>
+        /// Async send a cmd command and get the result.
+        /// </summary>
+        /// <param name="command">A non-interactive CMD command</param>
+        public void AsyncExecuteCMD(string command)
+        {
+            //Register async executing event.
+            delegateAsyncExecuteCMD = new AsyncExecuteCMDDelegate(_AsyncExecuteCMD);
+
+            //Register async callback.
+            AsyncExecuteCMDCallback = new AsyncCallback(NotifyCommandTerminated);
+            AsyncExecuteCMDResult = delegateAsyncExecuteCMD.BeginInvoke
+                (
+                    command: command,
+                    callback: AsyncExecuteCMDCallback,
+                    @object: "-Async Exec- Terminated. [" + command + "]"
+                );
+        }
+
+        /// <summary>
+        /// Method of AsyncExecuteCMD
+        /// </summary>
+        /// <param name="command"></param>
+        private void _AsyncExecuteCMD(string command)
+        {
+            if (!bInitedCMD)
+            {
+                Log("You didn't set this logger instance to responds to CMD commands.", MsgLevel.Critical);
+                Log("Otherwise this may be caused by errors occured before.", MsgLevel.Critical);
+                return;
+            }
+
+            string result = "";
+
+            var asyncCMD = new Process();
+            asyncCMD.StartInfo = psiCMD;
+            var bStart = asyncCMD.Start();
+
+            if (!bStart)
+            {
+                Log("Failed to create CMD process.", MsgLevel.Critical);
+                return;
+            }
+
+            Log("-Async Exec- " + command, MsgLevel.Further);
+
+            asyncCMD.StandardInput.AutoFlush = true;
+            asyncCMD.StandardInput.WriteLine(@"ECHO OFF");
+            asyncCMD.StandardInput.WriteLine(command);
+            asyncCMD.StandardInput.WriteLine(@"EXIT");
+
+            //Parsing result
+            result = asyncCMD.StandardOutput.ReadToEnd().Trim();
+            var index = result.IndexOf("ECHO OFF");
+            result = result.Substring(index + 8, result.Length - index - 13);
+
+            InnerLog(result, "", false, MsgLevel.Redirected);
+
+            procCMD.Close();
+        }
+
+        /// <summary>
+        /// Notify that a async-executed command is terminated.
+        /// </summary>
+        /// <param name="asyncResult"></param>
+        private void NotifyCommandTerminated(IAsyncResult asyncResult)
+        {
+            Log(asyncResult.AsyncState.ToString(), MsgLevel.Further);
         }
 
         /// <summary>
@@ -485,9 +608,9 @@ namespace ArLib.ARConsole
         public void Pause()
         {
             if (!bInitedCMD) return;
-            if (bConsoleApp) return;
+            //if (bConsoleApp) return;
 
-            Console.Write("Press Any Key To Continue...");
+            Console.WriteLine("Press Any Key To Continue...");
             Console.ReadKey();
         }
     }

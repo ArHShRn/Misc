@@ -156,11 +156,6 @@ namespace ArLib.Logger
 
             Console.SetOut(cstw);
             Console.SetError(cstw);
-
-            Console.WriteLine("ArHShRn Library Logger Console [Version Release]");
-            Console.WriteLine("  (c) 2018 Eusth [GuiConsole] All rights reserved under MIT license.");
-            Console.WriteLine("  (c) 2018 ArHShRn  [Library] All rights reserved under MIT license.");
-            Console.WriteLine("");
         }
     }
 }

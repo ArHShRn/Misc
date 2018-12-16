@@ -1,6 +1,8 @@
 version: 1.0.{build}
 image: Visual Studio 2015
 
+skip_tags: true
+
 configuration: Release
 
 platform: x64
@@ -18,9 +20,18 @@ artifacts:
 
 deploy:
 - provider: GitHub
-  tag: Collections
+  tag: v$(appveyor_build_version)
   release: Misc_Collections-v$(appveyor_build_version)
   auth_token:
     secure: 9A9cpAgA6HOpTiGLt1cnLLR8CddU9/P2qxaiL6LNMmU5cKaXoncdru/CvxLar+jM
   artifact: /.*/
   prerelease: false
+
+notifications:
+- provider: Email
+  to:
+  - 584290111@qq.com
+  - drancickphysix@yahoo.com
+  on_build_success: true
+  on_build_failure: true
+  on_build_status_changed: false

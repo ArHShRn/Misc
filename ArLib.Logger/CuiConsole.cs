@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ArLib.Logger
+namespace ArLib.ARConsole
 {
+    class CuiConsole
+    {
+    }
 }

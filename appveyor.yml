@@ -25,6 +25,8 @@ artifacts:
   name: Arguments Displayer
 - path: ArLib.Logger\bin\Release\ArLib.Logger.dll
   name: ArHShRn Library Logger
+- path: ArLib.Logger\bin\Release\ArLib.Logger.xml
+  name: ArHShRn Library Logger XML
 
 deploy:
 - provider: GitHub

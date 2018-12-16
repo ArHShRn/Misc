@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ARGDisplayer", "ARGDisplayer\ARGDisplayer.csproj", "{EADDEC26-DD88-4BBC-B8CE-BFDD21366127}"
 EndProject
@@ -20,9 +20,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github Items", "Github Item
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArLib.Logger", "ArLib.Logger\ArLib.Logger.csproj", "{2034B29C-7222-4BF4-90DC-B1759887BE45}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArLib.ARConsole", "ArLib.Logger\ArLib.ARConsole.csproj", "{2034B29C-7222-4BF4-90DC-B1759887BE45}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArLib.LibTestApp", "ArLib.LibTestApp\ArLib.LibTestApp.csproj", "{D8AF3397-9DF5-4254-ACB6-A874039E4988}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncTest", "AsyncTest\AsyncTest.csproj", "{E32BD62D-986D-456F-98CD-FF1C395EEEA7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -82,8 +84,23 @@ Global
 		{D8AF3397-9DF5-4254-ACB6-A874039E4988}.Release|x64.Build.0 = Release|Any CPU
 		{D8AF3397-9DF5-4254-ACB6-A874039E4988}.Release|x86.ActiveCfg = Release|Any CPU
 		{D8AF3397-9DF5-4254-ACB6-A874039E4988}.Release|x86.Build.0 = Release|Any CPU
+		{E32BD62D-986D-456F-98CD-FF1C395EEEA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E32BD62D-986D-456F-98CD-FF1C395EEEA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E32BD62D-986D-456F-98CD-FF1C395EEEA7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E32BD62D-986D-456F-98CD-FF1C395EEEA7}.Debug|x64.Build.0 = Debug|Any CPU
+		{E32BD62D-986D-456F-98CD-FF1C395EEEA7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E32BD62D-986D-456F-98CD-FF1C395EEEA7}.Debug|x86.Build.0 = Debug|Any CPU
+		{E32BD62D-986D-456F-98CD-FF1C395EEEA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E32BD62D-986D-456F-98CD-FF1C395EEEA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E32BD62D-986D-456F-98CD-FF1C395EEEA7}.Release|x64.ActiveCfg = Release|Any CPU
+		{E32BD62D-986D-456F-98CD-FF1C395EEEA7}.Release|x64.Build.0 = Release|Any CPU
+		{E32BD62D-986D-456F-98CD-FF1C395EEEA7}.Release|x86.ActiveCfg = Release|Any CPU
+		{E32BD62D-986D-456F-98CD-FF1C395EEEA7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7FE3BF7C-2DA2-44DE-B716-37DFD6408DD3}
 	EndGlobalSection
 EndGlobal

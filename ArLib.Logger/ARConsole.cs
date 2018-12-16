@@ -16,12 +16,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows.Forms;
 
-namespace ArLib.Logger
+namespace ArLib.ARConsole
 {
     /// <summary>
     /// <para>Log message levels.</para>
@@ -59,7 +57,7 @@ namespace ArLib.Logger
     /// <summary>
     /// The log console class
     /// </summary>
-    public class LogConsole
+    public class LogHelper
     {
         /// <summary>
         /// Process of CMD
@@ -74,20 +72,22 @@ namespace ArLib.Logger
         /// <para>Is CMD successfully initialized.</para>
         /// <para>
         /// Related both to if user wants to create CMD
-        /// and to if ProcessStartInfo of CMD is successfully initialized
+        /// and to if ProcessStartInfo of CMD is successfully initialized.
         /// </para> 
         /// </summary>
         private bool bInitedCMD = false;
         /// <summary>
-        /// Is current running proc is a console app
+        /// Is current running proc is a console app?
         /// </summary>
         private bool bConsoleApp = true;
-
-        private ConsoleColor DefaultColor = ConsoleColor.White;
-        private ConsoleColor RedirectedColor = ConsoleColor.Cyan;
-        private ConsoleColor HarmlessColor = ConsoleColor.Green;
-        private ConsoleColor FurtherColor = ConsoleColor.Yellow;
-        private ConsoleColor CriticalColor = ConsoleColor.Red;
+        /// <summary>
+        /// Is current console created as a GUI console?
+        /// </summary>
+        private bool bGuiConsole = false;
+        /// <summary>
+        /// Is gui console disposed?
+        /// </summary>
+        private bool bGuiConosleDisposed = false;
 
         /// <summary>
         /// For get/set usage.
@@ -96,7 +96,7 @@ namespace ArLib.Logger
         /// <summary>
         /// Default prefix of the log.
         /// </summary>
-        private readonly string _Default_Prefix = "[Log] ";
+        private readonly string _Default_Prefix = "[CuiConsole] ";
         /// <summary>
         /// <para>Prefix of the log.</para>
         /// <para>Default prefix is "[Log] "</para>
@@ -114,7 +114,7 @@ namespace ArLib.Logger
             }
             set
             {
-                _Prefix =  "[" + value + "] ";
+                _Prefix = "[" + value + "] ";
             }
         }
 
@@ -125,13 +125,54 @@ namespace ArLib.Logger
         private List<string> preErrMsg = new List<string>();
 
         /// <summary>
+        /// The form class of Gui console.
+        /// </summary>
+        private GuiConsole guiConsole = null;
+        /// <summary>
+        /// <para>A delegate.</para>
+        /// <para>Used for async creating Gui console.</para>
+        /// </summary>
+        private delegate void CreateGuiConsoleDelegate();
+        /// <summary>
+        /// A callback that would inform us if Gui console is disposed.
+        /// </summary>
+        private AsyncCallback CreateGuiConsoleCallBack;
+        /// <summary>
+        /// The instance of the function to create a Gui console.
+        /// </summary>
+        private CreateGuiConsoleDelegate CreateGuiConsole = null;
+        /// <summary>
+        /// IAsyncResult of CreateGuiConsoleDelegate's invoke.
+        /// </summary>
+        private IAsyncResult CreateGuiConsoleResult = null;
+        /// <summary>
+        /// <para>A delegate.</para>
+        /// <para>Used for adding log in Gui console.</para>
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="bAllowTracing"></param>
+        private delegate void GuiLogDelegate(string msg, bool bAllowTracing);
+        /// <summary>
+        /// The method to add log in Gui console.
+        /// </summary>
+        private GuiLogDelegate LogGuiConsole = null;
+
+        private ConsoleColor DefaultColor = ConsoleColor.White;
+        private ConsoleColor RedirectedColor = ConsoleColor.Cyan;
+        private ConsoleColor HarmlessColor = ConsoleColor.Green;
+        private ConsoleColor FurtherColor = ConsoleColor.Yellow;
+        private ConsoleColor CriticalColor = ConsoleColor.Red;
+
+        /// <summary>
         /// <para>Create a logger instance.</para>
         /// <para>This instance responds to CMD commands and uses default log prefix</para>
         /// </summary>
-        public LogConsole()
+        public LogHelper()
         {
             bInitedCMD = false;
-            bConsoleApp = !CreateGUIConsole();
+            bConsoleApp = !CreateCuiConsole();
+
+            LogPreErrors();
         }
 
         /// <summary>
@@ -140,10 +181,12 @@ namespace ArLib.Logger
         /// <para>This instance uses default log prefix.</para>
         /// </summary>
         /// <param name="bUseCMD">set true to let the instance responds to CMD commands.</param>
-        public LogConsole(bool bUseCMD)
+        public LogHelper(bool bUseCMD)
         {
             bInitedCMD = bUseCMD && InitPsiCMD();
-            bConsoleApp = !CreateGUIConsole();
+            bConsoleApp = !CreateCuiConsole();
+
+            LogPreErrors();
         }
 
         /// <summary>
@@ -152,12 +195,88 @@ namespace ArLib.Logger
         /// <para>The user will decide if this instance uses customized prefix.</para>
         /// </summary>
         /// <param name="bUseCMD">set true to let the instance responds to CMD commands.</param>
-        /// <param name="customPrefix">ste your willing prefix.</param>
-        public LogConsole(bool bUseCMD, string customPrefix)
+        /// <param name="customPrefix">set your willing prefix.</param>
+        public LogHelper(bool bUseCMD, string customPrefix)
         {
             bInitedCMD = bUseCMD && InitPsiCMD();
-            bConsoleApp = !CreateGUIConsole();
+            bConsoleApp = !CreateCuiConsole();
             Prefix = customPrefix;
+
+            LogPreErrors();
+        }
+
+        /// <summary>
+        /// <para>Create a logger instance.</para>
+        /// <para>The user will decide if this instance responds to CMD commands.</para>
+        /// <para>The user will decide if this instance uses customized prefix.</para>
+        /// <para>The user will decide if this instance is a GUI console</para>
+        /// </summary>
+        /// <param name="bUseCMD">set true to let the instance responds to CMD commands.</param>
+        /// <param name="customPrefix">set your willing prefix.</param>
+        /// <param name="bGUI">set true to create GUI console</param>
+        public LogHelper(bool bUseCMD, string customPrefix, bool bGUI)
+        {
+            bInitedCMD = bUseCMD && InitPsiCMD();
+            bGuiConsole = bGUI;
+            Prefix = customPrefix;
+
+            if(bGuiConsole)
+            {
+                guiConsole = new GuiConsole();
+
+                //Register logging method
+                LogGuiConsole = new GuiLogDelegate(guiConsole.AddLog);
+
+                //Register async creating event.
+                CreateGuiConsole = new CreateGuiConsoleDelegate(CreateGuiThread);
+                CreateGuiConsoleCallBack = new AsyncCallback(NotifyGuiConsoleTerminated);
+                CreateGuiConsoleResult = CreateGuiConsole.BeginInvoke
+                    (
+                        callback: CreateGuiConsoleCallBack,
+                        @object: "Gui Console Terminiated!"
+                    );
+            }
+            else
+                bConsoleApp = !CreateCuiConsole();
+
+            LogPreErrors();
+        }
+
+        /// <summary>
+        /// A method to start a standard message loop of Gui console.
+        /// </summary>
+        private void CreateGuiThread()
+        {
+            Application.Run(guiConsole);
+        }
+
+        /// <summary>
+        /// Called after the Gui console terminated.
+        /// </summary>
+        /// <param name="asyncResult"></param>
+        private void NotifyGuiConsoleTerminated(IAsyncResult asyncResult)
+        {
+            //Debug
+            MessageBox.Show(asyncResult.AsyncState.ToString(), "Callback Test");
+
+            //To-dos
+            return;
+        }
+
+        /// <summary>
+        /// Log all errors that occured before the console is created.
+        /// </summary>
+        private void LogPreErrors()
+        {
+            string errmsg = "";
+            Log("Logger successfully created!", MsgLevel.Harmless);
+            while(true)
+            {
+                errmsg = preErrMsg.DequeueErrorMessage();
+                if (errmsg == null) break;
+
+                Log(errmsg, MsgLevel.Critical);
+            }
         }
 
         /// <summary>
@@ -193,11 +312,11 @@ namespace ArLib.Logger
         /// Try to create a console for current proc.
         /// </summary>
         /// <returns>false if current proc has already a console.[Like a console app]</returns>
-        private bool CreateGUIConsole()
+        private bool CreateCuiConsole()
         {
             try
             {
-                GuiConsole.CreateConsole();
+                ConsoleHelper.CreateConsole();
                 return true;
             }
             catch(Exception ex)
@@ -207,9 +326,9 @@ namespace ArLib.Logger
             }
             finally
             {
-                Console.WriteLine("ArHShRn Library Logger Console [Version Release]");
-                Console.WriteLine("  (c) 2018 Eusth [GuiConsole] All rights reserved under MIT license.");
-                Console.WriteLine("  (c) 2018 ArHShRn  [Library] All rights reserved under MIT license.");
+                Console.WriteLine(UserDefinedStr.sAuthor);
+                Console.WriteLine(UserDefinedStr.sHelperCpr);
+                Console.WriteLine(UserDefinedStr.sLibCpr);
                 Console.WriteLine("");
             }
         }
@@ -220,8 +339,18 @@ namespace ArLib.Logger
         /// </summary>
         public void ReleaseConsole()
         {
-            if (bConsoleApp) return;
-            GuiConsole.ReleaseConsole();
+            if(bConsoleApp && !bGuiConsole)
+            {
+                Log("You can't release the console while this process is a console app!", MsgLevel.Critical);
+                return;
+            }
+            if(bGuiConsole && !bGuiConosleDisposed)
+            {
+                Log("You can't release the console while the Gui console is online!", MsgLevel.Critical);
+                return;
+            }
+
+            ConsoleHelper.ReleaseConsole();
         }
 
         /// <summary>
@@ -230,15 +359,33 @@ namespace ArLib.Logger
         /// <param name="str"></param>
         public void Log(string str, MsgLevel level = MsgLevel.Default)
         {
-            string msg = Prefix.Trim() + "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + str;
+            string msg = "";
+
+            if(bGuiConsole)
+            {
+                LogGuiConsole(str, true);
+                return;
+            }
+
+            msg = Prefix.Trim() + "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + str;
             //Color switch
             switch (level)
             {
-                case MsgLevel.Harmless: Console.ForegroundColor = HarmlessColor; break;
-                case MsgLevel.Redirected: Console.ForegroundColor = RedirectedColor; break;
-                case MsgLevel.Further: Console.ForegroundColor = FurtherColor; break;
-                case MsgLevel.Critical: Console.ForegroundColor = CriticalColor; break;
-                default: Console.ForegroundColor = DefaultColor; break;
+                case MsgLevel.Harmless:
+                    Console.ForegroundColor = HarmlessColor;
+                    break;
+                case MsgLevel.Redirected:
+                    Console.ForegroundColor = RedirectedColor;
+                    break;
+                case MsgLevel.Further:
+                    Console.ForegroundColor = FurtherColor;
+                    break;
+                case MsgLevel.Critical:
+                    Console.ForegroundColor = CriticalColor;
+                    break;
+                default:
+                    Console.ForegroundColor = DefaultColor;
+                    break;
             }
 
             Console.WriteLine(msg);
@@ -261,15 +408,32 @@ namespace ArLib.Logger
         /// <param name="level"></param>
         private void InnerLog(string str, string prefix = "InnerMsg", bool bPrefix = false, MsgLevel level = MsgLevel.Default)
         {
-            string msg = bPrefix ? ("[" + prefix + "] " + str) : str;
+            string msg = "";
+            if (bGuiConsole)
+            {
+                LogGuiConsole(str, true);
+                return;
+            }
+
+            msg = bPrefix ? ("[" + prefix + "] " + str) : str;
             //Color switch
             switch (level)
             {
-                case MsgLevel.Harmless: Console.ForegroundColor = HarmlessColor; break;
-                case MsgLevel.Redirected: Console.ForegroundColor = RedirectedColor; break;
-                case MsgLevel.Further: Console.ForegroundColor = FurtherColor; break;
-                case MsgLevel.Critical: Console.ForegroundColor = CriticalColor; break;
-                default: Console.ForegroundColor = DefaultColor; break;
+                case MsgLevel.Harmless:
+                    Console.ForegroundColor = HarmlessColor;
+                    break;
+                case MsgLevel.Redirected:
+                    Console.ForegroundColor = RedirectedColor;
+                    break;
+                case MsgLevel.Further:
+                    Console.ForegroundColor = FurtherColor;
+                    break;
+                case MsgLevel.Critical:
+                    Console.ForegroundColor = CriticalColor;
+                    break;
+                default:
+                    Console.ForegroundColor = DefaultColor;
+                    break;
             }
 
             Console.WriteLine(msg);
@@ -323,7 +487,6 @@ namespace ArLib.Logger
             if (!bInitedCMD) return;
             if (bConsoleApp) return;
 
-            Console.ForegroundColor = DefaultColor;
             Console.Write("Press Any Key To Continue...");
             Console.ReadKey();
         }

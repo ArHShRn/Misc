@@ -1,161 +1,97 @@
-﻿//=============================================================================
-// ArLIB Logger : GUI Console Class
-// Introduction :
-//  Using Windows API, Eusth did this all. I just modified
-//   it into my LIB class.
-//  This class allocates current running thread a console,
-//   and handles everything that needs to control the allocated console.
-// 
-// Code And Concept By Eusth
-// https://github.com/Eusth
-// Modified By ArHShRn
-// https://github.com/ArHShRn
-//
-// Release Log :
-//  Add comments.
-//
-// Last Update :
-//  Dec.15th 2018
-//=============================================================================
-using System;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
+﻿using System;
+using System.Windows.Forms;
 
-namespace ArLib.Logger
+namespace ArLib.ARConsole
 {
-    /// <summary>
-    /// A helper class to create a console.
-    /// </summary>
-    class GuiConsole
+    public partial class GuiConsole : Form
     {
-        private static bool hasConsole = false;
-
-        private static IntPtr conOut;
-        private static IntPtr oldOut;
-
         /// <summary>
-        /// [WINDOWS API] ALLOCATE A CONSOLE
+        /// For get/set usage.
         /// </summary>
-        /// <returns></returns>
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern bool AllocConsole();
-
+        private string _Prefix = "";
         /// <summary>
-        /// [WINDOWS API] RELEASE CREATED CONSOLE
+        /// Default prefix of the log.
         /// </summary>
-        /// <returns></returns>
-        [DllImport("kernel32.dll", SetLastError = false)]
-        private static extern bool FreeConsole();
-
+        private readonly string _Default_Prefix = "[GuiConsole] ";
         /// <summary>
-        /// [WINDOWS API] GET A HANDLE FROM A STANDARD DEVICE
-        /// (INPUT, OUTPUT, ERROR STREAM)
+        /// <para>Prefix of the log.</para>
+        /// <para>Default prefix is "[Log] "</para>
+        /// <para>The log message will like</para>
+        /// <para>[Log] This is a sample log.</para>
         /// </summary>
-        /// <param name="nStdHandle"></param>
-        /// <returns></returns>
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern IntPtr GetStdHandle(int nStdHandle);
-
-        /// <summary>
-        /// [WINDOWS API] SET A HANDLE TO A STANDARD DEVICE
-        /// (OUTPUT STREAM)
-        /// </summary>
-        /// <param name="nStdHandle"></param>
-        /// <param name="hConsoleOutput"></param>
-        /// <returns></returns>
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern bool SetStdHandle(int nStdHandle, IntPtr hConsoleOutput);
-
-        /// <summary>
-        /// [WINDOWS API] CREATE OR OPEN A FILE OR A DEVICE.
-        /// </summary>
-        /// <param name="fileName"></param>
-        /// <param name="desiredAccess"></param>
-        /// <param name="shareMode"></param>
-        /// <param name="securityAttributes"></param>
-        /// <param name="creationDisposition"></param>
-        /// <param name="flagsAndAttributes"></param>
-        /// <param name="templateFile"></param>
-        /// <returns></returns>
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr CreateFile(
-                string fileName,
-                int desiredAccess,
-                int shareMode,
-                IntPtr securityAttributes,
-                int creationDisposition,
-                int flagsAndAttributes,
-                IntPtr templateFile);
-
-        /// <summary>
-        /// [WINDOWS API] CLOSE A HANDLE
-        /// (FILES, FILE MAPPINGS, THREADS ETC.)
-        /// </summary>
-        /// <param name="handle"></param>
-        /// <returns></returns>
-        [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
-        private static extern bool CloseHandle(IntPtr handle);
-
-        /// <summary>
-        /// Create current thread a console window.
-        /// </summary>
-        public static void CreateConsole()
+        public string Prefix
         {
-            if (hasConsole)
-                return;
-
-            if (oldOut == IntPtr.Zero)
-                oldOut = GetStdHandle(-11);
-
-            if (!AllocConsole())
-                throw new Exception("AllocConsole() failed");
-
-            conOut = CreateFile("CONOUT$", 0x40000000, 2, IntPtr.Zero, 3, 0, IntPtr.Zero);
-
-            if (!SetStdHandle(-11, conOut))
-                throw new Exception("SetStdHandle() failed");
-
-            StreamToConsole();
-
-            hasConsole = true;
+            get
+            {
+                if (_Prefix == "")
+                    return _Default_Prefix;
+                else
+                    return _Prefix;
+            }
+            set
+            {
+                _Prefix = "[" + value + "] ";
+            }
         }
 
-        /// <summary>
-        /// Release the console created before.
-        /// </summary>
-        public static void ReleaseConsole()
+        public GuiConsole()
         {
-            if (!hasConsole)
-                return;
-
-            if (!CloseHandle(conOut))
-                throw new Exception("Failed to close cureent console handle.");
-
-            conOut = IntPtr.Zero;
-            if (!FreeConsole())
-                throw new Exception("Failed to free current consoel.");
-
-            if (!SetStdHandle(-11, oldOut))
-                throw new Exception("Failed to set standard handle.");
-
-            StreamToConsole();
-
-            hasConsole = false;
+            InitializeComponent();
+            AddLog("Initialized.");
         }
 
-        /// <summary>
-        /// Redirect the stream to consoel created before.
-        /// </summary>
-        private static void StreamToConsole()
+        public void AddLog(string msg, bool bAllowTracing = true)
         {
-            Stream cstm = Console.OpenStandardOutput();
-            StreamWriter cstw = new StreamWriter(cstm, Encoding.Default);
+            tbLogs.Text = tbLogs.Text + 
+                Prefix.Trim() + 
+                "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + 
+                msg + 
+                Environment.NewLine;
+            Text = "Log: " + msg;
 
-            cstw.AutoFlush = true;
+            if (bAllowTracing)
+            {
+                tbLogs.SelectionStart = tbLogs.TextLength;
+                tbLogs.ScrollToCaret();
+            }
 
-            Console.SetOut(cstw);
-            Console.SetError(cstw);
+        }
+
+        private void ClsLogLb_Click(object sender, EventArgs e)
+        {
+            tbLogs.Clear();
+        }
+
+        private void Log_Load(object sender, EventArgs e)
+        {
+            //Implementation
+        }
+
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            tbLogs.Text = "/////////" + "\n//TDICTIONAL TRIE LOGFRAME INSTANCE" + "\n//USAGE FOR LOGGING STATUS" + "\n////////\n";
+        }
+
+        private void topToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            tbLogs.SelectionStart = 0;
+            tbLogs.ScrollToCaret();
+        }
+
+        private void buttomToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            tbLogs.SelectionStart = tbLogs.TextLength;
+            tbLogs.ScrollToCaret();
+        }
+
+        private void saveLogToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Dispose();
         }
     }
 }

@@ -23,9 +23,9 @@ artifacts:
   name: CM3D2x64 Launcher
 - path: ARGDisplayer\bin\x64\Release\ARGDisplayer.exe
   name: Arguments Displayer
-- path: ArLib.Logger\bin\Release\ArLib.Logger.dll
+- path: ArLib.ARConsole\bin\Release\ArLib.Logger.dll
   name: ArHShRn Library Logger
-- path: ArLib.Logger\bin\Release\ArLib.Logger.xml
+- path: ArLib.ARConsole\bin\Release\ArLib.Logger.xml
   name: ArHShRn Library Logger XML
 
 deploy:

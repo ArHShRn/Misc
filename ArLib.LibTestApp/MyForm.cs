@@ -7,17 +7,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using ArLib.LogHelper;
+using ArLib.ARConsole;
 
 namespace ArLib.LibTestApp
 {
     public partial class MyForm : Form
     {
-        private LogHelper.ARConsole logger;
+        private LogHelper logger;
         public MyForm()
         {
             InitializeComponent();
-            logger = new LogHelper.ARConsole(true, "MyForm", true);
+            logger = new LogHelper(true, "MyForm", true);
         }
 
         private void btCreateLog_Click(object sender, EventArgs e)

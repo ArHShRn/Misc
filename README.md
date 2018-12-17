@@ -4,11 +4,11 @@
 ## Artifacts
 ### CUI & GUI Log Helper
 ![result](https://fileshk.arhshrn.cn/github/miscellaneous/ArLib_Logger/result.jpg)
-This item is currently under construction.<br>
+<br>This item is currently under construction.
 
 ### Custom Maid 3D 2 x64 Launcher
 ![CM3D2x64_Launcher_Cover](https://fileshk.arhshrn.cn/github/miscellaneous/CM3D2x64_Launcher/CM3D2x64_Launcher_Cover.jpg)
-CM3D2x64_Launcher.exe will auto-detect environment and launch CM3D2 conveniently and silently.<br>
+<br>CM3D2x64_Launcher.exe will auto-detect environment and launch CM3D2 conveniently and silently.
 
 ### Argument Displayer
 ARGDisplayer.exe will display all arguments used if you "hook" this app onto other things.<br>

@@ -9,8 +9,6 @@
 // Release Log :
 //  Just created this class. It's all empty.
 //
-// Last Update :
-//  Dec.15th 2018
 //=============================================================================
 
 using System;
@@ -51,38 +49,18 @@ namespace ArLib.ARConsole
     };
 
     /// <summary>
-    /// Self-made List extensions
-    /// </summary>
-    public static class ListExtension
-    {
-        /// <summary>
-        /// [Extension] Take messages one by one in the List like a queue.
-        /// </summary>
-        /// <param name="MsgList">The error messages list</param>
-        /// <returns>null if the list is empty</returns>
-        public static string DeQueueList(this List<string> MsgList)
-        {
-            if (MsgList.Count <= 0) return null;
-
-            var Msg = MsgList.First();
-            MsgList.RemoveAt(0);
-            return Msg;
-        }
-    }
-
-    /// <summary>
     /// The log console class
     /// </summary>
-    public class LogHelper
+    public static class LogHelper
     {
         /// <summary>
         /// Process of CMD
         /// </summary>
-        private Process procCMD         = null;
+        private static Process procCMD         = null;
         /// <summary>
         /// ProcessStartInfo of CMD
         /// </summary>
-        private ProcessStartInfo psiCMD = null;
+        private static ProcessStartInfo psiCMD = null;
 
         /// <summary>
         /// <para>Is CMD successfully initialized.</para>
@@ -91,50 +69,60 @@ namespace ArLib.ARConsole
         /// and to if ProcessStartInfo of CMD is successfully initialized.
         /// </para> 
         /// </summary>
-        private bool bInitedCMD     = false;
+        private static bool bInitedCMD     = false;
         /// <summary>
-        /// Is current running proc is a console app?
+        /// Does current running proc has a cui console?
         /// <para>Default: true</para>
         /// </summary>
-        private bool bConsoleApp    = true;
+        private static bool bHasCuiConsole    = true;
         /// <summary>
         /// Is current console created as a GUI console?
         /// </summary>
-        private bool bGuiConsole    = false;
+        private static bool bGuiConsole    = false;
         /// <summary>
         /// Is gui console disposed?
         /// </summary>
-        private bool bGuiDisposed   = false;
+        private static bool bGuiDisposed   = false;
         /// <summary>
         /// Did user call ReleaseConsole();
         /// </summary>
-        private bool _bReleased = true;
+        private static bool _bReleased = true;
         /// <summary>
         /// Did user call ReleaseConsole();
         /// </summary>
-        public bool bReleased
+        public static bool Released
         {
             get
             {
                 return _bReleased;
             }
         }
+        /// <summary>
+        /// Do all Async tasks complete?
+        /// </summary>
+        private static bool bTasksComplete
+        {
+            get
+            {
+                return pendingCount == 0;
+            }
+        }
 
         /// <summary>
         /// For get/set usage.
         /// </summary>
-        private string _Prefix = "";
+        private static string _Prefix = "";
         /// <summary>
         /// Default prefix of the log.
         /// </summary>
-        private readonly string _Default_Prefix = "[CuiConsole] ";
+        private static readonly string _Default_Prefix = "[CuiConsole] ";
         /// <summary>
         /// <para>Prefix of the log.</para>
         /// <para>Default prefix is "[Log] "</para>
         /// <para>The log message will like
         /// [Log] This is a sample log.</para>
         /// </summary>
-        public string Prefix
+        public static string Prefix
         {
             get
             {
@@ -148,21 +136,18 @@ namespace ArLib.ARConsole
                 _Prefix = "[" + value + "] ";
             }
         }
+        private static string Title = "";
 
         /// <summary>
         /// <para>The exception message of errors occured before the console is created.</para>
         /// <para>All errors will be logged according to their own occuring time after initialization.</para>
         /// </summary>
-        private List<string> preErrMsg = new List<string>();
+        private static Queue<string> preErrMsg = new Queue<string>();
 
         /// <summary>
         /// The form style logger
         /// </summary>
-        private GuiConsole guiConsole = null;
-        /// <summary>
-        /// The console style logger
-        /// </summary>
-        private CuiConsole cuiConsole = null;
+        private static GuiConsole guiConsole = null;
 
         //----------Async GUI Message Loop
         #region Async_GUI_Message_Loop
@@ -170,102 +155,43 @@ namespace ArLib.ARConsole
         /// <para>A delegate.</para>
         /// <para>Used for async creating Gui console.</para>
         /// </summary>
-        private delegate void CreateGuiConsoleDelegate();
+        private delegate void CreateGuiConsoleDelegate(string customPrefix, string title);
         /// <summary>
         /// A callback that would inform us if Gui console is disposed.
         /// </summary>
-        private AsyncCallback CreateGuiConsoleCallBack;
+        private static AsyncCallback CreateGuiConsoleCallBack;
         /// <summary>
         /// IAsyncResult of CreateGuiConsoleDelegate's invoke.
         /// </summary>
-        private IAsyncResult CreateGuiConsoleResult = null;
+        private static IAsyncResult CreateGuiConsoleResult = null;
         /// <summary>
         /// The instance of the function to create a Gui console.
         /// </summary>
-        private CreateGuiConsoleDelegate delegateCreateGuiConsole = null;
+        private static CreateGuiConsoleDelegate delegateCreateGuiConsole = null;
         #endregion Async_GUI_Message_Loop
 
         //----------Async Executing Commands
         #region Async_Executing_Commands
         private delegate void AsyncExecuteCMDDelegate(string command);
-        private AsyncExecuteCMDDelegate delegateAsyncExecuteCMD     = null;
-        private AsyncCallback AsyncExecuteCMDCallback               = null;
-        private IAsyncResult AsyncExecuteCMDResult                  = null;
-
-        private Queue<IAsyncResult> AsyncCommands = new Queue<IAsyncResult>();
+        private static AsyncExecuteCMDDelegate delegateAsyncExecuteCMD = null;
+        private static AsyncCallback AsyncExecuteCMDCallback = null;
+        private static IAsyncResult AsyncExecuteCMDResult = null;
+        private static Queue<IAsyncResult> PendingAsyncCommands = new Queue<IAsyncResult>();
+        private static int pendingCount
+        {
+            get
+            {
+                return PendingAsyncCommands.Count;
+            }
+        }
         #endregion Async_Executing_Commands
 
-        /// <summary>
-        /// <para>A delegate.</para>
-        /// <para>Used for adding log in Gui console.</para>
-        /// </summary>
-        /// <param name="msg"></param>
-        /// <param name="bAllowTracing"></param>
-        private delegate void GuiLogDelegate(string msg, bool bAllowTracing);
-        /// <summary>
-        /// The method to add log in Gui console.
-        /// </summary>
-        private GuiLogDelegate LogGuiConsole = null;
+        private static ConsoleColor DefaultColor       = ConsoleColor.White;
+        private static ConsoleColor RedirectedColor    = ConsoleColor.Cyan;
+        private static ConsoleColor HarmlessColor      = ConsoleColor.Green;
+        private static ConsoleColor FurtherColor       = ConsoleColor.Yellow;
+        private static ConsoleColor CriticalColor      = ConsoleColor.Red;
 
-        private ConsoleColor DefaultColor       = ConsoleColor.White;
-        private ConsoleColor RedirectedColor    = ConsoleColor.Cyan;
-        private ConsoleColor HarmlessColor      = ConsoleColor.Green;
-        private ConsoleColor FurtherColor       = ConsoleColor.Yellow;
-        private ConsoleColor CriticalColor      = ConsoleColor.Red;
-
-        /// <summary>
-        /// <para>Create a logger instance.</para>
-        /// <para>This instance is a CUI console, responds to CMD commands and uses default log prefix</para>
-        /// </summary>
-        /// <param name="title">The console title.</param>
-        public LogHelper(string title = "ArHShRn CUI Logger")
-        {
-            bInitedCMD = false;
-            bConsoleApp = !CreateCuiConsole(title);
-            bGuiConsole = false;
-            bGuiDisposed = true;
-            _bReleased = false;
-
-            LogPreErrors();
-        }
-        /// <summary>
-        /// <para>Create a logger instance.</para>
-        /// <para>This instance is a CUI console, uses default log prefix.</para>
-        /// <para>The user will decide if this instance responds to CMD commands.</para>
-        /// </summary>
-        /// <param name="bUseCMD">set true to let the instance responds to CMD commands.</param>
-        /// <param name="title">The console title.</param>
-        public LogHelper(bool bUseCMD, string title = "ArHShRn CUI Logger")
-        {
-            bInitedCMD = bUseCMD && InitPsiCMD();
-            bConsoleApp = !CreateCuiConsole(title);
-            bGuiConsole = false;
-            bGuiDisposed = true;
-            _bReleased = false;
-
-            LogPreErrors();
-        }
-        /// <summary>
-        /// <para>Create a logger instance.</para>
-        /// <para>This instance is a CUI console</para>
-        /// <para>The user will decide if this instance responds to CMD commands.</para>
-        /// <para>The user will decide if this instance uses customized prefix.</para>
-        /// </summary>
-        /// <param name="bUseCMD">set true to let the instance responds to CMD commands.</param>
-        /// <param name="customPrefix">set your willing prefix.</param>
-        /// <param name="title">The console title.</param>
-        public LogHelper(bool bUseCMD, string customPrefix, string title = "ArHShRn CUI Logger")
-        {
-            bInitedCMD = bUseCMD && InitPsiCMD();
-            bConsoleApp = !CreateCuiConsole(title);
-            bGuiConsole = false;
-            bGuiDisposed = true;
-            _bReleased = false;
-
-            Prefix = customPrefix;
-
-            LogPreErrors();
-        }
         /// <summary>
         /// <para>Create a logger instance.</para>
         /// <para>The user will decide if this instance responds to CMD commands.</para>
@@ -276,40 +202,61 @@ namespace ArLib.ARConsole
         /// <param name="customPrefix">set your willing prefix.</param>
         /// <param name="bGUI">set true to create GUI console</param>
         /// <param name="title">The console title.</param>
-        public LogHelper(bool bUseCMD, string customPrefix, bool bGUI, string title = "ArHShRn CUI Logger")
+        public static bool CreateConsole(bool bUseCMD, string customPrefix, bool bGUI, string title = "ArHShRn Logger")
         {
             bInitedCMD = bUseCMD && InitPsiCMD();
-            bConsoleApp = true;
+            bHasCuiConsole = true;
             bGuiConsole = bGUI;
             bGuiDisposed = false;
             _bReleased = false;
 
             Prefix = customPrefix;
+            Title = title;
 
-            if(bGuiConsole)
+            try
             {
-                //guiConsole = new GuiConsole();
+                Thread.CurrentThread.Name = title;
+                if (bGuiConsole)
+                {
+                    CreateGuiConsole(customPrefix, title);
+                    bHasCuiConsole = false;
+                }
+                else
+                    bHasCuiConsole = !CreateCuiConsole(title);
 
-                ////Register async method use in this class
-                //LogGuiConsole = new GuiLogDelegate(guiConsole.AddLog);
-
-                ////Register async creating event.
-                //delegateCreateGuiConsole = new CreateGuiConsoleDelegate(CreateGuiThread);
-                ////Register async callback
-                //CreateGuiConsoleCallBack = new AsyncCallback(NotifyGuiConsoleTerminated);
-                ////Begin invoke
-                //CreateGuiConsoleResult = delegateCreateGuiConsole.BeginInvoke
-                //    (
-                //        callback: CreateGuiConsoleCallBack,
-                //        @object: "Gui Console Terminiated!"
-                //    );
-                bConsoleApp = !CreateCuiConsole(title);
-                bGuiConsole = false;
+                return true;
             }
-            else
-                bConsoleApp = !CreateCuiConsole(title);
+            catch(Exception ex)
+            {
+                preErrMsg.Enqueue(ex.Message);
+                return false;
+            }
+            finally
+            {
+                LogCreatingStatus();
+            }
+        }
+        /// <summary>
+        /// Release created console.
+        /// If the app has already a console then leave it.
+        /// </summary>
+        public static void ReleaseConsole()
+        {
+            if (bGuiConsole)
+            {
+                if (!bGuiDisposed)
+                {
+                    guiConsole.Dispose();
+                    bGuiDisposed = true;
+                }
+                else
+                    MessageBox.Show("GUI Console is already disposed.", Prefix);
 
-            LogPreErrors();
+                return;
+            }
+
+            ConsoleHelper.ReleaseConsole();
+            _bReleased = true;
         }
 
         /// <summary>
@@ -317,7 +264,7 @@ namespace ArLib.ARConsole
         /// Will store a exception msg that occurs before the console is created.
         /// </summary>
         /// <returns></returns>
-        private bool InitPsiCMD()
+        private static bool InitPsiCMD()
         {
             try
             {
@@ -338,92 +285,92 @@ namespace ArLib.ARConsole
             }
             catch (Exception ex)
             {
-                preErrMsg.Add(ex.Message);
+                preErrMsg.Enqueue(ex.Message);
                 return false;
             }
         }
         /// <summary>
         /// Log all errors that occured before the console is created.
         /// </summary>
-        private void LogPreErrors()
+        private static void LogCreatingStatus()
         {
             string errmsg = "";
-            Log("Logger successfully created! Logging previous errors(if had).", MsgLevel.Harmless);
-            while (true)
+
+            while (preErrMsg.Count != 0)
             {
-                errmsg = preErrMsg.DeQueueList();
+                errmsg = preErrMsg.Dequeue();
                 if (errmsg == null) break;
 
                 Log("-Previous Error- " + errmsg, MsgLevel.Critical);
             }
+            Log("Logger successfully created! Name = " + Thread.CurrentThread.Name, MsgLevel.Default);
         }
-
-        /// <summary>
-        /// A method to start a standard message loop of Gui console.
-        /// </summary>
-        private void CreateGuiThread()
-        {
-            MessageBox.Show("Developing...", "ArHShRn GUI Logger");
-            //Application.Run(guiConsole);
-        }
-        /// <summary>
-        /// Called after the Gui console terminated.
-        /// </summary>
-        /// <param name="asyncResult"></param>
-        private void NotifyGuiConsoleTerminated(IAsyncResult asyncResult)
-        {
-            //Debug
-            MessageBox.Show(asyncResult.AsyncState.ToString(), "Callback Test");
-
-            //To-dos
-            _bReleased = true;
-            return;
-        }
-
 
         /// <summary>
         /// Try to create a console for current proc.
         /// </summary>
         /// <returns>false if current proc has already a console.[Like a console app]</returns>
-        private bool CreateCuiConsole(string title)
+        private static bool CreateCuiConsole(string title)
         {
             try
             {
                 ConsoleHelper.CreateConsole(title);
                 return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                preErrMsg.Add(ex.Message);
+                preErrMsg.Enqueue(ex.Message);
                 return false;
             }
             finally
             {
+                Console.Clear();
                 Console.WriteLine(UserDefinedStr.sAuthor);
                 Console.WriteLine(UserDefinedStr.sHelperCpr);
                 Console.WriteLine(UserDefinedStr.sLibCpr);
                 Console.WriteLine("");
             }
         }
-        /// <summary>
-        /// Release created console.
-        /// If the app has already a console then leave it.
-        /// </summary>
-        public void ReleaseConsole()
+        private static void CreateGuiConsole(string customPrefix, string title)
         {
-            if(bConsoleApp && !bGuiConsole)
+            delegateCreateGuiConsole = new CreateGuiConsoleDelegate(_CreateGuiConsole);
+            CreateGuiConsoleCallBack = new AsyncCallback(NotifyGuiConsoleTerminated);
+            CreateGuiConsoleResult = delegateCreateGuiConsole.BeginInvoke(
+                customPrefix: customPrefix,
+                title: title,
+                callback: CreateGuiConsoleCallBack,
+                @object: "GUI Console Disposed.");
+        }
+        /// <summary>
+        /// A method to start a standard message loop of Gui console.
+        /// </summary>
+        private static void _CreateGuiConsole(string customPrefix, string title)
+        {
+            try
             {
-                Log("You can't release the console while this process is a console app!", MsgLevel.Critical);
-                return;
-            }
-            if(bGuiConsole && !bGuiDisposed)
-            {
-                Log("You can't release the console while the Gui console is online!", MsgLevel.Critical);
-                return;
-            }
+                guiConsole = new GuiConsole(customPrefix, title);
 
-            ConsoleHelper.ReleaseConsole();
+                Application.EnableVisualStyles();
+
+                Application.Run(guiConsole);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error!");
+            }
+        }
+        /// <summary>
+        /// Called after the Gui console terminated.
+        /// </summary>
+        /// <param name="asyncResult"></param>
+        private static void NotifyGuiConsoleTerminated(IAsyncResult asyncResult)
+        {
+            //To-dos
             _bReleased = true;
+
+            preErrMsg.Enqueue("A new CUI console is created to keep the app running.");
+            CreateConsole(bInitedCMD, Prefix, false, Title);
+            return;
         }
 
         /// <summary>
@@ -431,15 +378,14 @@ namespace ArLib.ARConsole
         /// </summary>
         /// <param name="str">Contents to be logged</param>
         /// <param name="level">Message level which decides the printing color</param>
-        public void Log(string str, MsgLevel level = MsgLevel.Default)
+        public static void Log(string str, MsgLevel level = MsgLevel.Default)
         {
             string msg = "";
 
-            //if (bGuiConsole)
-            //{
-            //    LogGuiConsole(str, true);
-            //    return;
-            //}
+            if (bGuiConsole)
+            {
+                return;
+            }
 
             msg = Prefix.Trim() + "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + str;
             //Color switch
@@ -472,14 +418,13 @@ namespace ArLib.ARConsole
         /// <param name="prefix"></param>
         /// <param name="bPrefix"></param>
         /// <param name="level"></param>
-        private void InnerLog(string str, string prefix = "InnerMsg", bool bPrefix = false, MsgLevel level = MsgLevel.Default)
+        private static void InnerLog(string str, string prefix = "InnerMsg", bool bPrefix = false, MsgLevel level = MsgLevel.Default)
         {
             string msg = "";
-            //if (bGuiConsole)
-            //{
-            //    LogGuiConsole(str, true);
-            //    return;
-            //}
+            if (bGuiConsole)
+            {
+                return;
+            }
 
             msg = bPrefix ? ("[" + prefix + "] " + str) : str;
             //Color switch
@@ -507,18 +452,29 @@ namespace ArLib.ARConsole
         /// <summary>
         /// Start a new line except GUI console.
         /// </summary>
-        public void CRLF()
+        public static void CRLF()
         {
-            if (bGuiConsole) return;
+            if (bGuiConsole || Released) return;
 
             Console.WriteLine();
+        }
+        /// <summary>
+        /// Simulate a PAUSE command
+        /// </summary>
+        private static void Pause()
+        {
+            if (!bInitedCMD) return;
+            if (bGuiConsole) return;
+
+            InnerLog("Press any key to continue...");
+            Console.ReadKey();
         }
 
         /// <summary>
         /// Sync send a cmd command and get the result.
         /// </summary>
         /// <param name="command">A non-interactive CMD command</param>
-        public void ExecuteCMD(string command)
+        public static void ExecuteCMD(string command)
         {
             if(!bInitedCMD)
             {
@@ -556,13 +512,17 @@ namespace ArLib.ARConsole
 
             procCMD.Close();
         }
-
         /// <summary>
         /// Async send a cmd command and get the result.
         /// </summary>
         /// <param name="command">A non-interactive CMD command</param>
-        public void AsyncExecuteCMD(string command)
+        public static void AsyncExecuteCMD(string command)
         {
+            if (pendingCount >= 1)
+            {
+                Log("You can't start a new async command while there is a pending command.", MsgLevel.Critical);
+                return;
+            }
             //Register async executing event.
             delegateAsyncExecuteCMD = new AsyncExecuteCMDDelegate(_AsyncExecuteCMD);
 
@@ -572,19 +532,19 @@ namespace ArLib.ARConsole
                 (
                     command: command,
                     callback: AsyncExecuteCMDCallback,
-                    @object: "-Async Exec- Terminated. [" + command + "]"
+                    @object: "-Async Exec- Terminated."
                 );
 
-            AsyncCommands.Enqueue(AsyncExecuteCMDResult);
+            PendingAsyncCommands.Enqueue(AsyncExecuteCMDResult);
             Log("[" + command + "] has been added to exec queue.");
-            Log("Current pending count = " + AsyncCommands.Count);
+            Log("Current pending count = " + PendingAsyncCommands.Count);
             return;
         }
         /// <summary>
         /// Method of AsyncExecuteCMD
         /// </summary>
         /// <param name="command"></param>
-        private void _AsyncExecuteCMD(string command)
+        private static void _AsyncExecuteCMD(string command)
         {
             if (!bInitedCMD)
             {
@@ -625,22 +585,18 @@ namespace ArLib.ARConsole
         /// Notify that a async-executed command is terminated.
         /// </summary>
         /// <param name="asyncResult"></param>
-        private void NotifyCommandTerminated(IAsyncResult asyncResult)
+        private static void NotifyCommandTerminated(IAsyncResult asyncResult)
         {
-            AsyncCommands.Dequeue();
-            Log(asyncResult.AsyncState.ToString(), MsgLevel.Further);
-        }
+            string msg = asyncResult.AsyncState.ToString();
 
-        /// <summary>
-        /// Simulate a PAUSE command
-        /// </summary>
-        public void Pause()
-        {
-            if (!bInitedCMD) return;
-            if (bGuiConsole && !bConsoleApp) return;
+            PendingAsyncCommands.Dequeue();
 
-            InnerLog("Press any key to continue...");
-            Console.ReadKey();
+            if (pendingCount == 0)
+                msg = msg + "No more task pending.";
+            else
+                msg = msg + "Waiting for left " + pendingCount + " task(s)";
+
+            Log(msg, MsgLevel.Further);
         }
     }
 }

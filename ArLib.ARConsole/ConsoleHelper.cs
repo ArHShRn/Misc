@@ -142,7 +142,7 @@ namespace ArLib.ARConsole
 
             conOut = IntPtr.Zero;
             if (!FreeConsole())
-                throw new Exception("Failed to free current consoel.");
+                throw new Exception("Failed to free current console.");
 
             if (!SetStdHandle(-11, oldOut))
                 throw new Exception("Failed to set standard handle.");

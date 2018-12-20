@@ -39,7 +39,13 @@
             this.stripMenu = new System.Windows.Forms.MenuStrip();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.btWordWarp = new System.Windows.Forms.ToolStripMenuItem();
-            this.viewSeperator = new System.Windows.Forms.ToolStripSeparator();
+            this.fontToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.arialToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mSGothixToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
+            this.smallFontSize925ptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.normalFontSize10ptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.bigFontSize12ptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tbLogs = new System.Windows.Forms.RichTextBox();
             this.stripMenu.SuspendLayout();
             this.SuspendLayout();
@@ -115,7 +121,7 @@
             // 
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.btWordWarp,
-            this.viewSeperator});
+            this.fontToolStripMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.viewToolStripMenuItem.Text = "View";
@@ -127,10 +133,58 @@
             this.btWordWarp.Text = "Word Warp";
             this.btWordWarp.Click += new System.EventHandler(this.btWordWarp_Click);
             // 
-            // viewSeperator
+            // fontToolStripMenuItem
             // 
-            this.viewSeperator.Name = "viewSeperator";
-            this.viewSeperator.Size = new System.Drawing.Size(177, 6);
+            this.fontToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.arialToolStripMenuItem,
+            this.mSGothixToolStripMenuItem,
+            this.toolStripMenuItem1,
+            this.smallFontSize925ptToolStripMenuItem,
+            this.normalFontSize10ptToolStripMenuItem,
+            this.bigFontSize12ptToolStripMenuItem});
+            this.fontToolStripMenuItem.Name = "fontToolStripMenuItem";
+            this.fontToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.fontToolStripMenuItem.Text = "Font";
+            // 
+            // arialToolStripMenuItem
+            // 
+            this.arialToolStripMenuItem.Name = "arialToolStripMenuItem";
+            this.arialToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
+            this.arialToolStripMenuItem.Text = "Arial";
+            this.arialToolStripMenuItem.Click += new System.EventHandler(this.arialToolStripMenuItem_Click);
+            // 
+            // mSGothixToolStripMenuItem
+            // 
+            this.mSGothixToolStripMenuItem.Name = "mSGothixToolStripMenuItem";
+            this.mSGothixToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
+            this.mSGothixToolStripMenuItem.Text = "MS Gothic";
+            this.mSGothixToolStripMenuItem.Click += new System.EventHandler(this.mSGothixToolStripMenuItem_Click);
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(192, 6);
+            // 
+            // smallFontSize925ptToolStripMenuItem
+            // 
+            this.smallFontSize925ptToolStripMenuItem.Name = "smallFontSize925ptToolStripMenuItem";
+            this.smallFontSize925ptToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
+            this.smallFontSize925ptToolStripMenuItem.Text = "Small Font Size(9.25pt)";
+            this.smallFontSize925ptToolStripMenuItem.Click += new System.EventHandler(this.smallFontSize925ptToolStripMenuItem_Click);
+            // 
+            // normalFontSize10ptToolStripMenuItem
+            // 
+            this.normalFontSize10ptToolStripMenuItem.Name = "normalFontSize10ptToolStripMenuItem";
+            this.normalFontSize10ptToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
+            this.normalFontSize10ptToolStripMenuItem.Text = "Normal Font Size(10pt)";
+            this.normalFontSize10ptToolStripMenuItem.Click += new System.EventHandler(this.normalFontSize10ptToolStripMenuItem_Click);
+            // 
+            // bigFontSize12ptToolStripMenuItem
+            // 
+            this.bigFontSize12ptToolStripMenuItem.Name = "bigFontSize12ptToolStripMenuItem";
+            this.bigFontSize12ptToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
+            this.bigFontSize12ptToolStripMenuItem.Text = "Big Font Size(12pt)";
+            this.bigFontSize12ptToolStripMenuItem.Click += new System.EventHandler(this.bigFontSize12ptToolStripMenuItem_Click);
             // 
             // tbLogs
             // 
@@ -139,6 +193,7 @@
             this.tbLogs.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tbLogs.Location = new System.Drawing.Point(0, 24);
             this.tbLogs.Name = "tbLogs";
+            this.tbLogs.ReadOnly = true;
             this.tbLogs.Size = new System.Drawing.Size(884, 437);
             this.tbLogs.TabIndex = 2;
             this.tbLogs.Text = "";
@@ -159,6 +214,7 @@
             this.Name = "GuiConsole";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Gui Logger";
+            this.Load += new System.EventHandler(this.GuiConsole_Load);
             this.stripMenu.ResumeLayout(false);
             this.stripMenu.PerformLayout();
             this.ResumeLayout(false);
@@ -178,6 +234,12 @@
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem btWordWarp;
         private System.Windows.Forms.RichTextBox tbLogs;
-        private System.Windows.Forms.ToolStripSeparator viewSeperator;
+        private System.Windows.Forms.ToolStripMenuItem fontToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem arialToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem mSGothixToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem smallFontSize925ptToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem normalFontSize10ptToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem bigFontSize12ptToolStripMenuItem;
     }
 }

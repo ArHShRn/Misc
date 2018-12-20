@@ -48,7 +48,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CuiConsole.cs" />
     <Compile Include="Strings.cs" />
     <Compile Include="GuiConsole.cs">
       <SubType>Form</SubType>

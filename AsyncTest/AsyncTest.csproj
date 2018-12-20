@@ -49,5 +49,11 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ArLib.ARConsole\ArLib.ARConsole.csproj">
+      <Project>{2034b29c-7222-4bf4-90dc-b1759887be45}</Project>
+      <Name>ArLib.ARConsole</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

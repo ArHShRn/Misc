@@ -1,4 +1,14 @@
-﻿namespace ArLib.ARConsole
+﻿//=============================================================================
+// ArLIB Console : User Defined String
+// Introduction :
+//  Copyright Info
+// 
+// Code And Concept By ArHShRn
+// https://github.com/ArHShRn
+//
+//=============================================================================
+
+namespace ArLib.ARConsole
 {
     /// <summary>
     /// Copyrights and licenses

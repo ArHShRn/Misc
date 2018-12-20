@@ -1,4 +1,14 @@
-﻿using System;
+﻿//=============================================================================
+// ArLIB Console : GUI Console
+// Introduction :
+//  Create a GUI console instance and redirect logs to it.
+// 
+// Code And Concept By ArHShRn
+// https://github.com/ArHShRn
+//
+//=============================================================================
+
+using System;
 using System.Windows.Forms;
 using System.Threading;
 
@@ -94,6 +104,9 @@ namespace ArLib.ARConsole
             }
         }
 
+        private delegate void AddLogDelegate(string msg, bool bInnerLog, bool bAllowTracing);
+        private AddLogDelegate delegateAddLog = null;
+
         /// <summary>
         /// Construct a GUI logger with a customized title.
         /// </summary>
@@ -114,7 +127,12 @@ namespace ArLib.ARConsole
             bArial = true;
             bNormalFont = true;
         }
-
+        
+        /// <summary>
+        /// Print copyright string on load.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void GuiConsole_Load(object sender, EventArgs e)
         {
             tbLogs.Clear();
@@ -131,10 +149,25 @@ namespace ArLib.ARConsole
         /// Add a log into textbox
         /// </summary>
         /// <param name="msg"></param>
+        /// <param name="bInnerLog"></param>
         /// <param name="bAllowTracing"></param>
-        public void AddLog(string msg, bool bAllowTracing = true)
+        public void AddLog(string msg, bool bInnerLog = false, bool bAllowTracing = true)
         {
-            string appendMsg = Prefix.Trim() + "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + msg + Environment.NewLine;
+            if (tbLogs.InvokeRequired)
+            {
+                //MessageBox.Show("Current Message Requires Invoke." + Environment.NewLine + msg, "Invoke Required");
+                //return;
+                delegateAddLog = new AddLogDelegate(AddLog);
+                tbLogs.Invoke(delegateAddLog, new object[] { msg, bInnerLog, bAllowTracing });
+                return;
+            }
+
+            string appendMsg = 
+                bInnerLog?
+                //(msg + Environment.NewLine) :
+                "" :
+                (Prefix.Trim() + "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + msg + Environment.NewLine);
+
             tbLogs.AppendText(appendMsg);
 
             if (bAllowTracing)
@@ -144,12 +177,22 @@ namespace ArLib.ARConsole
             }
         }
 
+        /// <summary>
+        /// Append a new line into tbLogs.
+        /// </summary>
+        /// <param name="msg"></param>
         private void AppenLine(string msg)
         {
             tbLogs.Text = tbLogs.Text + msg + Environment.NewLine;
             return;
         }
 
+        /// <summary>
+        /// Dispose the windows on click.
+        /// Will have a confirmation.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btDispose_Click(object sender, EventArgs e)
         {
             if (MessageBox.Show("Do you really want to dispose GUI console?" + Environment.NewLine +
@@ -159,6 +202,8 @@ namespace ArLib.ARConsole
                 MessageBoxButtons.OKCancel)
                 == DialogResult.OK)
                 Dispose();
+            // A callback is registered in LogHelper::NotifyGuiConsoleTerminated
+            // Do what you want there!
             else
                 return;
         }

@@ -129,7 +129,7 @@
             // btWordWarp
             // 
             this.btWordWarp.Name = "btWordWarp";
-            this.btWordWarp.Size = new System.Drawing.Size(180, 22);
+            this.btWordWarp.Size = new System.Drawing.Size(134, 22);
             this.btWordWarp.Text = "Word Warp";
             this.btWordWarp.Click += new System.EventHandler(this.btWordWarp_Click);
             // 
@@ -143,7 +143,7 @@
             this.normalFontSize10ptToolStripMenuItem,
             this.bigFontSize12ptToolStripMenuItem});
             this.fontToolStripMenuItem.Name = "fontToolStripMenuItem";
-            this.fontToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.fontToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
             this.fontToolStripMenuItem.Text = "Font";
             // 
             // arialToolStripMenuItem
@@ -212,7 +212,6 @@
             this.Location = new System.Drawing.Point(20, 20);
             this.MainMenuStrip = this.stripMenu;
             this.Name = "GuiConsole";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Gui Logger";
             this.Load += new System.EventHandler(this.GuiConsole_Load);
             this.stripMenu.ResumeLayout(false);

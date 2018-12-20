@@ -1,13 +1,10 @@
 ﻿//=============================================================================
-// ArLIB Logger : Logger Instance Classs
+// ArLIB Console : CUI Console Logger
 // Introduction :
-//  Create a console instance and redirect logs to it.
+//  Create a CUI console instance and redirect logs to it.
 // 
 // Code And Concept By ArHShRn
 // https://github.com/ArHShRn
-//
-// Release Log :
-//  Just created this class. It's all empty.
 //
 //=============================================================================
 
@@ -168,6 +165,11 @@ namespace ArLib.ARConsole
         /// The instance of the function to create a Gui console.
         /// </summary>
         private static CreateGuiConsoleDelegate delegateCreateGuiConsole = null;
+
+        private delegate void LogGuiConsoleDelegate(string msg, bool bInnerLog, bool bAllowTracing);
+        private static LogGuiConsoleDelegate delegateLogGuiConsole;
+        private static AsyncCallback LogGuiConsoleCallback;
+        private static IAsyncResult LogGuiConsoleResult;
         #endregion Async_GUI_Message_Loop
 
         //----------Async Executing Commands
@@ -242,6 +244,8 @@ namespace ArLib.ARConsole
         /// </summary>
         public static void ReleaseConsole()
         {
+            if (Released) return;
+
             if (bGuiConsole)
             {
                 if (!bGuiDisposed)
@@ -255,7 +259,7 @@ namespace ArLib.ARConsole
                 return;
             }
 
-            ConsoleHelper.ReleaseConsole();
+            CuiConsole.ReleaseConsole();
             _bReleased = true;
         }
 
@@ -314,7 +318,7 @@ namespace ArLib.ARConsole
         {
             try
             {
-                ConsoleHelper.CreateConsole(title);
+                CuiConsole.CreateConsole(title);
                 return true;
             }
             catch (Exception ex)
@@ -340,6 +344,11 @@ namespace ArLib.ARConsole
                 title: title,
                 callback: CreateGuiConsoleCallBack,
                 @object: "GUI Console Disposed.");
+
+            while (guiConsole == null) ;
+
+            delegateLogGuiConsole = new LogGuiConsoleDelegate(guiConsole.AddLog);
+            LogGuiConsoleCallback = new AsyncCallback(NotifyLogCompleteInGuiConsole);
         }
         /// <summary>
         /// A method to start a standard message loop of Gui console.
@@ -351,7 +360,6 @@ namespace ArLib.ARConsole
                 guiConsole = new GuiConsole(customPrefix, title);
 
                 Application.EnableVisualStyles();
-
                 Application.Run(guiConsole);
             }
             catch (Exception ex)
@@ -367,9 +375,23 @@ namespace ArLib.ARConsole
         {
             //To-dos
             _bReleased = true;
+            guiConsole = null;
 
             preErrMsg.Enqueue("A new CUI console is created to keep the app running.");
             CreateConsole(bInitedCMD, Prefix, false, Title);
+            return;
+        }
+        /// <summary>
+        /// Called after the message is logged in the GUI console
+        /// </summary>
+        /// <param name="asyncResult"></param>
+        private static void NotifyLogCompleteInGuiConsole(IAsyncResult asyncResult)
+        {
+            //Put what you want to do
+            var msg = asyncResult.AsyncState.ToString();
+
+            if (msg.Contains("[CMD]"))
+                MessageBox.Show(msg.Substring(5), "CMD Executing Result");
             return;
         }
 
@@ -380,11 +402,18 @@ namespace ArLib.ARConsole
         /// <param name="level">Message level which decides the printing color</param>
         public static void Log(string str, MsgLevel level = MsgLevel.Default)
         {
+            if (Released) return;
+
             string msg = "";
 
             if (bGuiConsole)
             {
-                return;
+                LogGuiConsoleResult = delegateLogGuiConsole.BeginInvoke(
+                    msg: str,
+                    bInnerLog: false,
+                    bAllowTracing: true,
+                    callback: LogGuiConsoleCallback,
+                    @object: str);
             }
 
             msg = Prefix.Trim() + "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + str;
@@ -420,10 +449,17 @@ namespace ArLib.ARConsole
         /// <param name="level"></param>
         private static void InnerLog(string str, string prefix = "InnerMsg", bool bPrefix = false, MsgLevel level = MsgLevel.Default)
         {
+            if (Released) return;
+
             string msg = "";
             if (bGuiConsole)
             {
-                return;
+                LogGuiConsoleResult = delegateLogGuiConsole.BeginInvoke(
+                    msg: str,
+                    bInnerLog: true,
+                    bAllowTracing: true,
+                    callback: LogGuiConsoleCallback,
+                    @object: "[CMD]" + str);
             }
 
             msg = bPrefix ? ("[" + prefix + "] " + str) : str;
@@ -509,6 +545,9 @@ namespace ArLib.ARConsole
 
             InnerLog(result, "", false, MsgLevel.Redirected);
             Log("-Sync Exec- Terminated. [" + command + "]", MsgLevel.Further);
+
+            if (bGuiConsole)
+                Log("-Sync Exec- The result should show in a message box poping.");
 
             procCMD.Close();
         }
@@ -597,6 +636,8 @@ namespace ArLib.ARConsole
                 msg = msg + "Waiting for left " + pendingCount + " task(s)";
 
             Log(msg, MsgLevel.Further);
+            if (bGuiConsole)
+                Log("-Async Exec- The result should show in a message box poping.");
         }
     }
 }

@@ -6,9 +6,6 @@
 // Code And Concept By ArHShRn
 // https://github.com/ArHShRn
 //
-// Release Log :
-//  Just created this class. It's all empty.
-//
 //=============================================================================
 
 using System;
@@ -22,7 +19,9 @@ namespace ArLib.LibTestApp
     {
         static void Main()
         {
-            LogHelper.CreateConsole(true, "Library Test", true, "Just A Test QAQ");
+            LogHelper.CreateConsole(true, "Library Test", true, "This is a init title");
+            LogHelper.Log("Test Log");
+            LogHelper.AsyncExecuteCMD("NSLOOKUP -QT=A WWW.BAIDU.COM 8.8.8.8");
 
             Thread.Sleep(10000);
         }

@@ -1,5 +1,5 @@
 ﻿//=============================================================================
-// ArLIB Logger : Windows Console Class
+// ArLIB Console : Windows CUI Console Class
 // Introduction :
 //  Using Windows API, Eusth did this all. I just modified
 //   it into my LIB class.
@@ -13,11 +13,6 @@
 // Microsoft Docs
 // https://docs.microsoft.com/en-us/windows/console/console-functions
 //
-// Release Log :
-//  Add comments.
-//
-// Last Update :
-//  Dec.15th 2018
 //=============================================================================
 using System;
 using System.IO;
@@ -29,7 +24,7 @@ namespace ArLib.ARConsole
     /// <summary>
     /// A helper class to create a console.
     /// </summary>
-    class ConsoleHelper
+    class CuiConsole
     {
         private static bool hasConsole = false;
 

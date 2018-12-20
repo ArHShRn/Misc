@@ -55,7 +55,7 @@
     <Compile Include="GuiConsole.Designer.cs">
       <DependentUpon>GuiConsole.cs</DependentUpon>
     </Compile>
-    <Compile Include="ConsoleHelper.cs" />
+    <Compile Include="CuiConsole.cs" />
     <Compile Include="LogHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
